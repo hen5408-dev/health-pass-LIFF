@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Health Pass 健康通行證</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root{
+    --green-900:#1d3f1a;
+    --green-700:#1f7a37;
+    --green-600:#22a24a;
+    --green-500:#2fbb59;
+    --green-100:#e6f7ec;
+    --ink:#1a2420;
+    --ink-soft:#5b6b62;
+    --paper:#f7faf8;
+    --card:#ffffff;
+    --line:#e3ece5;
+    --danger:#c0392b;
+    --shadow: 0 8px 24px rgba(29,63,26,0.08);
+    --radius:20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--card);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:var(--shadow);
+  }
+
+  /* Top bar */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 20px;
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-title{
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar-title b{font-size:15px;}
+  .topbar-title span{font-size:11px;color:var(--ink-soft);}
+  .topbar-close{
+    width:28px;height:28px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);
+    font-size:18px;
+    cursor:pointer;
+    background:none;border:none;
+  }
+  .topbar-close:hover{background:var(--green-100);}
+
+  /* Progress dots */
+  .progress{
+    display:flex;
+    gap:6px;
+    padding:12px 20px 0;
+  }
+  .progress i{
+    flex:1;
+    height:4px;
+    border-radius:2px;
+    background:var(--line);
+    transition:background .3s;
+  }
+  .progress i.active{background:var(--green-600);}
+
+  .screen{
+    flex:1;
+    display:none;
+    flex-direction:column;
+    padding:28px 24px 24px;
+    animation:fadein .35s ease;
+  }
+  .screen.visible{display:flex;}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* Step 1 */
+  .hero-icon{
+    width:96px;height:96px;
+    border-radius:28px;
+    background:linear-gradient(160deg,var(--green-500),var(--green-700));
+    display:flex;align-items:center;justify-content:center;
+    margin:8px auto 20px;
+    box-shadow:0 10px 20px rgba(34,162,74,0.25);
+  }
+  .hero-icon svg{width:52px;height:52px;}
+  h1.title{
+    text-align:center;
+    font-size:20px;
+    margin:0 0 4px;
+    letter-spacing:.02em;
+  }
+  p.subtitle{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    margin:0 0 22px;
+  }
+  .benefit-list{
+    list-style:none;
+    margin:0 0 24px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .benefit-list li{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .benefit-list .dot{
+    width:20px;height:20px;
+    flex:none;
+    border-radius:50%;
+    background:var(--green-100);
+    color:var(--green-700);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    margin-top:1px;
+  }
+  .time-chip{
+    align-self:center;
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;
+    color:var(--green-700);
+    background:var(--green-100);
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .incentive-banner{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#fff7e6;
+    border:1px solid #f3d9a0;
+    color:#8a5a00;
+    font-size:12.5px;
+    font-weight:600;
+    padding:10px 14px;
+    border-radius:12px;
+    margin-bottom:18px;
+  }
+  .social-proof{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+
+  .spacer{flex:1;}
+
+  .btn-primary{
+    width:100%;
+    border:none;
+    background:linear-gradient(160deg,var(--green-500),var(--green-700));
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    padding:15px;
+    border-radius:14px;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(34,162,74,0.3);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary:active{transform:scale(0.98);}
+  .btn-primary:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .footnote{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+  }
+
+  /* Step 2 form */
+  .verified-chip{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--green-100);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:22px;
+  }
+  .verified-chip .check{
+    width:26px;height:26px;
+    border-radius:50%;
+    background:var(--green-600);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    flex:none;
+  }
+  .verified-chip b{font-size:13.5px;display:block;}
+  .verified-chip span{font-size:11.5px;color:var(--green-700);}
+
+  h2.form-title{
+    font-size:15px;
+    margin:0 0 18px;
+    line-height:1.5;
+  }
+  label.field-label{
+    font-size:12.5px;
+    font-weight:700;
+    margin-bottom:6px;
+    display:block;
+  }
+  .field{margin-bottom:16px;}
+  .field input{
+    width:100%;
+    padding:13px 14px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    font-size:14px;
+    outline:none;
+    font-family:inherit;
+    transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--green-600);}
+  .field .hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:5px;
+  }
+  .field.error input{border-color:var(--danger);}
+  .field .err-msg{
+    font-size:11px;
+    color:var(--danger);
+    margin-top:5px;
+    display:none;
+  }
+  .field.error .err-msg{display:block;}
+
+  .checkbox-row{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin:18px 0 20px;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .checkbox-row input{margin-top:2px;accent-color:var(--green-600);}
+  .checkbox-row a{color:var(--green-700);font-weight:600;text-decoration:none;}
+
+  /* Step 3 verifying */
+  .verify-wrap{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .check-circle{
+    width:120px;height:120px;
+    border-radius:50%;
+    background:linear-gradient(160deg,var(--green-500),var(--green-700));
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:26px;
+    box-shadow:0 12px 26px rgba(34,162,74,0.3);
+    position:relative;
+  }
+  .check-circle svg{width:56px;height:56px;}
+  .verify-wrap h2{font-size:18px;margin:0 0 8px;}
+  .verify-wrap p{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
+  .loading-bar{
+    width:180px;
+    height:6px;
+    border-radius:3px;
+    background:var(--green-100);
+    overflow:hidden;
+  }
+  .loading-bar div{
+    height:100%;
+    width:30%;
+    background:var(--green-600);
+    border-radius:3px;
+    animation:load 1.1s ease-in-out infinite;
+  }
+  @keyframes load{
+    0%{transform:translateX(-100%);}
+    100%{transform:translateX(400%);}
+  }
+  .error-box{
+    display:none;
+    text-align:center;
+  }
+  .error-box .icon{
+    width:64px;height:64px;
+    border-radius:50%;
+    background:#fdecea;
+    color:var(--danger);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;
+    font-size:30px;
+  }
+  .error-box h2{font-size:16px;margin:0 0 6px;}
+  .error-box p{font-size:13px;color:var(--ink-soft);margin:0 0 22px;}
+
+  /* Step 4 success */
+  .success-hero{
+    display:flex;flex-direction:column;align-items:center;
+    padding-top:6px;
+  }
+  .avatar-badge{
+    width:150px;height:150px;
+    border-radius:50%;
+    background:var(--green-100);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+    position:relative;
+  }
+  .avatar-badge svg{width:74px;height:74px;}
+  .success-tag{
+    display:flex;align-items:center;gap:6px;
+    font-size:16px;font-weight:700;color:var(--green-700);
+    margin-bottom:6px;
+  }
+  .success-hero p.desc{
+    text-align:center;font-size:13px;color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+  .service-list{
+    display:flex;flex-direction:column;gap:10px;
+    margin-bottom:22px;
+  }
+  .service-item{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:14px;
+  }
+  .service-item .ic{
+    width:34px;height:34px;
+    border-radius:10px;
+    background:var(--green-100);
+    color:var(--green-700);
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .service-item b{font-size:13px;display:block;}
+  .service-item span{font-size:11px;color:var(--ink-soft);}
+
+  /* Dev / test panel */
+  .dev-panel{
+    max-width:480px;
+    width:100%;
+    margin:0 auto;
+    padding:14px 20px 40px;
+  }
+  .dev-panel summary{
+    cursor:pointer;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:10px;
+  }
+  .dev-box{
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:14px;
+    padding:14px;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.7;
+  }
+  .dev-box b{color:var(--ink);}
+  .dev-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .dev-row button{
+    font-size:11.5px;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+  }
+  .dev-row button:hover{background:var(--green-100);}
+  #devLog{
+    margin-top:10px;
+    background:var(--paper);
+    border-radius:8px;
+    padding:8px;
+    max-height:160px;
+    overflow:auto;
+    white-space:pre-wrap;
+    font-family:ui-monospace,Menlo,monospace;
+    font-size:10.5px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="topbar">
+    <div class="topbar-title">
+      <b>Health Pass 健康通行證</b>
+      <span id="liffIdLabel">liff.line.me</span>
+    </div>
+    <button class="topbar-close" onclick="closeLiff()">✕</button>
+  </div>
+
+  <div class="progress">
+    <i id="dot1" class="active"></i>
+    <i id="dot2"></i>
+    <i id="dot3"></i>
+    <i id="dot4"></i>
+  </div>
+
+  <!-- Step 1 -->
+  <section class="screen visible" id="screen1">
+    <div class="hero-icon">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.4 8.7 8 9 4.6-.3 8-4 8-9V5l-8-3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12.5l2 2 4-4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <p class="subtitle" id="greetingLine" style="margin-bottom:2px;">您好</p>
+    <h1 class="title" id="mainTitle">有問題不用等，AI 健康助理隨時線上回覆</h1>
+    <p class="subtitle">完成後立即可用</p>
+
+    <div class="incentive-banner" id="incentiveBanner" style="display:none;">
+      🎁 <span id="incentiveText">首次開通即贈健康小禮</span>
+    </div>
+
+    <ul class="benefit-list">
+      <li><span class="dot">✓</span>AI 健康助理 24 小時線上，不必等真人回覆</li>
+      <li><span class="dot">✓</span>優先收到預約與活動通知，不錯過</li>
+      <li><span class="dot">✓</span>專屬健康文章與影片推薦</li>
+      <li><span class="dot">✓</span>資料僅用於辨識身分，絕不外流</li>
+    </ul>
+
+    <div class="social-proof" id="socialProof" style="display:none;"></div>
+
+    <div class="time-chip">⏱ 約 30 秒即可完成</div>
+    <div class="spacer"></div>
+    <button class="btn-primary" id="btnStart" onclick="goToStep(2)">立即解鎖</button>
+    <div class="footnote">🔒 資料加密處理，請放心填寫</div>
+  </section>
+
+  <!-- Step 2 -->
+  <section class="screen" id="screen2">
+    <div class="verified-chip">
+      <div class="check">✓</div>
+      <div>
+        <b>LINE 身分驗證</b>
+        <span>已完成</span>
+      </div>
+    </div>
+    <h2 class="form-title">請補充以下資料<br>完成健康通行證</h2>
+
+    <div class="field" id="fieldName">
+      <label class="field-label">姓名</label>
+      <input type="text" id="inputName" placeholder="王小明" autocomplete="name">
+      <div class="hint">將用於識別您的會員身分</div>
+      <div class="err-msg">請輸入姓名</div>
+    </div>
+
+    <div class="field" id="fieldMobile">
+      <label class="field-label">手機號碼</label>
+      <input type="tel" id="inputMobile" placeholder="09XX-XXX-XXX" autocomplete="tel" maxlength="10">
+      <div class="hint">將作為重要通知與驗證使用</div>
+      <div class="err-msg">請輸入正確的手機號碼（09 開頭共 10 碼）</div>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="inputAgree">
+      <span>我已閱讀並同意<a href="#" onclick="return false;">健康服務條款與隱私政策</a></span>
+    </label>
+
+    <div class="spacer"></div>
+    <button class="btn-primary" id="btnSubmit" onclick="submitRegister()">完成啟用</button>
+    <div class="footnote">🔒 資料加密處理，請放心填寫</div>
+  </section>
+
+  <!-- Step 3 -->
+  <section class="screen" id="screen3">
+    <div class="verify-wrap" id="verifyLoading">
+      <div class="check-circle">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h2>驗證成功！</h2>
+      <p id="verifyingText">正在開通您的健康服務...</p>
+      <div class="loading-bar"><div></div></div>
+    </div>
+    <div class="error-box" id="verifyError">
+      <div class="icon">!</div>
+      <h2>開通失敗</h2>
+      <p id="errorText">系統暫時無法建立您的資料，請稍後再試一次。</p>
+      <button class="btn-primary" onclick="goToStep(2)">返回重新填寫</button>
+    </div>
+  </section>
+
+  <!-- Step 4 -->
+  <section class="screen" id="screen4">
+    <div class="success-hero">
+      <div class="avatar-badge">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#22a24a"/><path d="M8 12.5l2.5 2.5L16.5 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="success-tag">🎉 健康通行證已開通！</div>
+      <p class="desc">您現在可以在 LINE 中使用<br>專屬健康服務囉！</p>
+    </div>
+    <div class="service-list">
+      <div class="service-item">
+        <div class="ic">💬</div>
+        <div><b>健康助理</b><span>預約查詢、產品問題、常見問答</span></div>
+      </div>
+      <div class="service-item">
+        <div class="ic">📄</div>
+        <div><b>健康資訊</b><span>文章、影片、健康知識推薦</span></div>
+      </div>
+      <div class="service-item">
+        <div class="ic">🔔</div>
+        <div><b>活動與通知</b><span>講座、活動、優惠資訊</span></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="closeLiff()">返回 LINE 開始使用</button>
+  </section>
+
+</div>
+
+<details class="dev-panel">
+  <summary>🔧 開發／測試面板（正式上線前可移除）</summary>
+  <div class="dev-box">
+    <div><b>用途：</b>本面板用於在沒有真實 LIFF 環境時，模擬 LINE UID 與 API 呼叫，方便你自己先測整條流程。</div>
+    <div style="margin-top:8px;"><b>目前模式：</b><span id="modeLabel">偵測中...</span></div>
+    <div><b>取得的 LINE UID：</b><span id="uidLabel">尚未取得</span></div>
+    <div class="dev-row">
+      <button onclick="resetFlow()">重置流程</button>
+      <button onclick="goToStep(1)">跳到 Step1</button>
+      <button onclick="goToStep(2)">跳到 Step2</button>
+      <button onclick="goToStep(3)">跳到 Step3</button>
+      <button onclick="goToStep(4)">跳到 Step4</button>
+      <button onclick="testCheckApi()">測試 /member/check</button>
+      <button onclick="clearLog()">清除紀錄</button>
+    </div>
+    <div id="devLog">尚無紀錄</div>
+  </div>
+</details>
+
+<script>
+/* ============================================================
+   設定區：換成你自己的正式參數
+   ============================================================ */
+const CONFIG = {
+  LIFF_ID: "YOUR_LIFF_ID_HERE",          // 例如 "1234567890-abcdEFgh"
+  USE_MOCK_API: true,                     // true = 先用假資料測流程；接上真的後端後改成 false
+
+  // ---- CRM API 設定（正式串接時使用）----
+  API_KEY: "qrt897hpmd",                  // ⚠️ 見下方安全性提醒
+  CUSTOMER_CREATE_URL: "https://his.wisebalancehealth.com/CRM/api/customers",
+  CUSTOMER_QUERY_URL: "https://his.wisebalancehealth.com/CRM/api/qrycustomers",
+
+  // ---- 以下三個欄位意義未定，先放預設值，需與你確認實際邏輯 ----
+  PID: "",         // TODO: 確認這支 LIFF 對應的 PID 邏輯
+  BOT_MODE: "",    // TODO: 確認 Bot_mode 的可能值與觸發條件
+  PRODUCT: "",     // TODO: 確認 Product 是否要固定值或依情境帶入
+
+  // ---- Step1 吸引力設定：依實際情況調整 ----
+  SHOW_INCENTIVE: false,                  // 若有開通誘因（優惠券／積點），改 true 並填 INCENTIVE_TEXT
+  INCENTIVE_TEXT: "首次開通即贈健康小禮",
+  SHOW_SOCIAL_PROOF: false,               // 若有真實會員數，改 true 並填數字
+  SOCIAL_PROOF_COUNT: "1,280"
+};
+
+function getDeviceInfo(){
+  try{
+    if (typeof liff !== 'undefined' && liffReady) {
+      const os = liff.getOS ? liff.getOS() : 'unknown';
+      return `${os} / ${navigator.userAgent}`;
+    }
+  }catch(e){}
+  return navigator.userAgent;
+}
+
+let LINE_UID = null;
+let LINE_DISPLAY_NAME = null;
+let liffReady = false;
+
+function log(msg){
+  const el = document.getElementById('devLog');
+  const time = new Date().toLocaleTimeString();
+  el.textContent = `[${time}] ${msg}\n` + (el.textContent === '尚無紀錄' ? '' : el.textContent);
+}
+function clearLog(){ document.getElementById('devLog').textContent = '尚無紀錄'; }
+
+/* ---------------- LIFF 初始化 ---------------- */
+async function initLiff(){
+  if (typeof liff === 'undefined' || CONFIG.LIFF_ID === "YOUR_LIFF_ID_HERE") {
+    document.getElementById('modeLabel').textContent = '測試模式（尚未設定 LIFF_ID，使用假 UID）';
+    LINE_UID = 'Utest' + Math.random().toString(36).slice(2, 10);
+    LINE_DISPLAY_NAME = '測試使用者';
+    document.getElementById('uidLabel').textContent = LINE_UID;
+    log('尚未設定正式 LIFF_ID，已自動產生測試用 UID：' + LINE_UID);
+    applyStep1Personalization();
+    return;
+  }
+  try{
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    liffReady = true;
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    const profile = await liff.getProfile();
+    LINE_UID = profile.userId;
+    LINE_DISPLAY_NAME = profile.displayName;
+    document.getElementById('modeLabel').textContent = '正式 LIFF 環境';
+    document.getElementById('uidLabel').textContent = LINE_UID;
+    log('LIFF 初始化成功，取得 UID：' + LINE_UID);
+    applyStep1Personalization();
+    checkMemberStatus();
+  }catch(err){
+    document.getElementById('modeLabel').textContent = 'LIFF 初始化失敗（見紀錄）';
+    log('LIFF 初始化失敗：' + err.message);
+  }
+}
+
+function closeLiff(){
+  if (liffReady && typeof liff !== 'undefined') {
+    liff.closeWindow();
+  } else {
+    log('（測試模式）點擊了關閉 / 返回 LINE');
+  }
+}
+
+/* ---------------- API 呼叫 ---------------- */
+async function apiCheckMember(lineUid){
+  if (CONFIG.USE_MOCK_API) {
+    log('MOCK POST /qrycustomers → { result: "fail" }（模擬尚未註冊）');
+    return { isRegister: false };
+  }
+  const res = await fetch(CONFIG.CUSTOMER_QUERY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      Key: CONFIG.API_KEY,
+      LineID: lineUid
+    })
+  });
+  const data = await res.json();
+  log('qrycustomers 回傳：' + JSON.stringify(data));
+  // 依你們規格，找不到會員時 result 應不是 "success"（實際值請與後端確認）
+  if (data.result === 'success' && data.CID) {
+    return { isRegister: true, memberId: data.CID, name: data.Name };
+  }
+  return { isRegister: false };
+}
+
+async function apiRegisterMember(payload){
+  if (CONFIG.USE_MOCK_API) {
+    log('MOCK POST /customers → 送出: ' + JSON.stringify(payload));
+    await new Promise(r => setTimeout(r, 900));
+    return { success: true, member_id: 'C' + Math.floor(100000 + Math.random()*900000) };
+  }
+  const res = await fetch(CONFIG.CUSTOMER_CREATE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  log('customers 回傳：' + JSON.stringify(data));
+  if (data.result === 'success' && data.CID) {
+    return { success: true, member_id: data.CID };
+  }
+  return { success: false, message: data.message || '建檔失敗' };
+}
+
+async function checkMemberStatus(){
+  try{
+    const result = await apiCheckMember(LINE_UID);
+    if (result.isRegister) {
+      log('已是會員，直接跳至完成頁');
+      goToStep(4);
+    }
+  }catch(err){
+    log('check API 呼叫失敗：' + err.message);
+  }
+}
+
+async function testCheckApi(){
+  if (!LINE_UID) await initLiff();
+  try{
+    const result = await apiCheckMember(LINE_UID);
+    log('check API 回傳：' + JSON.stringify(result));
+  }catch(err){
+    log('check API 失敗：' + err.message);
+  }
+}
+
+/* ---------------- Step1 吸引力元素套用 ---------------- */
+function applyStep1Personalization(){
+  const greeting = document.getElementById('greetingLine');
+  if (LINE_DISPLAY_NAME) {
+    greeting.textContent = `Hi，${LINE_DISPLAY_NAME}`;
+  }
+  if (CONFIG.SHOW_INCENTIVE) {
+    document.getElementById('incentiveText').textContent = CONFIG.INCENTIVE_TEXT;
+    document.getElementById('incentiveBanner').style.display = 'flex';
+  }
+  if (CONFIG.SHOW_SOCIAL_PROOF) {
+    const sp = document.getElementById('socialProof');
+    sp.textContent = `已有 ${CONFIG.SOCIAL_PROOF_COUNT} 位會員完成開通`;
+    sp.style.display = 'block';
+  }
+}
+
+/* ---------------- 畫面切換 ---------------- */
+function goToStep(step){
+  for (let i=1;i<=4;i++){
+    document.getElementById('screen'+i).classList.remove('visible');
+    document.getElementById('dot'+i).classList.remove('active');
+  }
+  document.getElementById('screen'+step).classList.add('visible');
+  for (let i=1;i<=step;i++){
+    document.getElementById('dot'+i).classList.add('active');
+  }
+  if (step === 2 && LINE_DISPLAY_NAME) {
+    // 可選：預填 LINE 顯示名稱作為姓名參考（非必要）
+  }
+}
+
+function resetFlow(){
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputMobile').value = '';
+  document.getElementById('inputAgree').checked = false;
+  document.getElementById('fieldName').classList.remove('error');
+  document.getElementById('fieldMobile').classList.remove('error');
+  document.getElementById('verifyLoading').style.display = 'flex';
+  document.getElementById('verifyError').style.display = 'none';
+  goToStep(1);
+  log('已重置流程');
+}
+
+/* ---------------- 表單驗證與送出 ---------------- */
+function validateMobile(v){
+  return /^09\d{2}-?\d{3}-?\d{3}$/.test(v.replace(/\s/g,''));
+}
+
+async function submitRegister(){
+  const name = document.getElementById('inputName').value.trim();
+  const mobile = document.getElementById('inputMobile').value.trim();
+  const agree = document.getElementById('inputAgree').checked;
+
+  document.getElementById('fieldName').classList.toggle('error', name.length === 0);
+  document.getElementById('fieldMobile').classList.toggle('error', !validateMobile(mobile));
+
+  if (name.length === 0 || !validateMobile(mobile)) {
+    log('表單驗證失敗');
+    return;
+  }
+  if (!agree) {
+    alert('請先勾選同意健康服務條款與隱私政策');
+    return;
+  }
+
+  document.getElementById('btnSubmit').disabled = true;
+  goToStep(3);
+  document.getElementById('verifyLoading').style.display = 'flex';
+  document.getElementById('verifyError').style.display = 'none';
+
+  try{
+    const payload = {
+      Key: CONFIG.API_KEY,
+      Name: name,
+      Mobile: mobile,
+      LineID: LINE_UID,
+      deviceInfo: getDeviceInfo(),
+      PID: CONFIG.PID,
+      Bot_mode: CONFIG.BOT_MODE,
+      Product: CONFIG.PRODUCT
+    };
+    const result = await apiRegisterMember(payload);
+    if (result.success) {
+      log('會員建立成功，member_id=' + result.member_id);
+      setTimeout(() => goToStep(4), 600);
+    } else {
+      throw new Error('後端回傳 success:false');
+    }
+  }catch(err){
+    log('註冊失敗：' + err.message);
+    document.getElementById('verifyLoading').style.display = 'none';
+    document.getElementById('verifyError').style.display = 'block';
+    document.getElementById('errorText').textContent = err.message;
+  }finally{
+    document.getElementById('btnSubmit').disabled = false;
+  }
+}
+
+/* ---------------- 手機號碼自動加上分隔符（可選） ---------------- */
+document.getElementById('inputMobile').addEventListener('input', function(e){
+  let v = e.target.value.replace(/[^\d]/g,'').slice(0,10);
+  if (v.length > 6) v = v.slice(0,4) + '-' + v.slice(4,7) + '-' + v.slice(7);
+  else if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4);
+  e.target.value = v;
+});
+
+/* ---------------- 啟動 ---------------- */
+initLiff();
+</script>
+
+</body>
+</html>
