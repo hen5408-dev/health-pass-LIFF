@@ -51,9 +51,24 @@
     padding:14px 20px;
     border-bottom:1px solid var(--line);
   }
+  .topbar-back{
+    width:28px;height:28px;
+    flex:none;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink);
+    font-size:22px;
+    cursor:pointer;
+    background:none;border:none;
+    visibility:hidden;
+  }
+  .topbar-back.show{visibility:visible;}
+  .topbar-back:hover{background:var(--green-100);}
   .topbar-title{
     display:flex;
     flex-direction:column;
+    flex:1;
+    text-align:center;
   }
   .topbar-title b{font-size:15px;}
   .topbar-title span{font-size:11px;color:var(--ink-soft);}
@@ -168,6 +183,42 @@
     font-size:12px;
     color:var(--ink-soft);
     margin-bottom:6px;
+  }
+  .visitor-options{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .visitor-card{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px;
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    background:#fff;
+    cursor:pointer;
+    text-align:left;
+    font-family:inherit;
+    transition:border-color .15s, background .15s;
+  }
+  .visitor-card:active{background:var(--green-100);}
+  .visitor-card:hover{border-color:var(--green-500);}
+  .visitor-card-icon{
+    width:40px;height:40px;
+    flex:none;
+    border-radius:12px;
+    background:var(--green-100);
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;
+  }
+  .visitor-card-text{flex:1;}
+  .visitor-card-text b{font-size:14px;display:block;margin-bottom:2px;}
+  .visitor-card-text span{font-size:12px;color:var(--ink-soft);}
+  .visitor-card-arrow{
+    font-size:20px;
+    color:var(--ink-soft);
+    flex:none;
   }
 
   .spacer{flex:1;}
@@ -423,6 +474,7 @@
 <div id="app">
 
   <div class="topbar">
+    <button class="topbar-back" id="btnBack" onclick="goBack()">‹</button>
     <div class="topbar-title">
       <b>Health Pass 健康通行證</b>
       <span id="liffIdLabel">liff.line.me</span>
@@ -435,6 +487,7 @@
     <i id="dot2"></i>
     <i id="dot3"></i>
     <i id="dot4"></i>
+    <i id="dot5"></i>
   </div>
 
   <!-- Step 1 -->
@@ -465,7 +518,7 @@
     <div class="footnote">🔒 資料加密處理，請放心填寫</div>
   </section>
 
-  <!-- Step 2 -->
+  <!-- Step 2: 分流（是否來過） -->
   <section class="screen" id="screen2">
     <div class="verified-chip">
       <div class="check">✓</div>
@@ -474,7 +527,41 @@
         <span>已完成</span>
       </div>
     </div>
-    <h2 class="form-title">請補充以下資料<br>完成健康通行證</h2>
+    <h2 class="form-title">請問您有來過我們這裡嗎？</h2>
+    <p class="subtitle" style="text-align:left;margin-bottom:24px;">告訴我們一下，幫您準備合適的開通方式</p>
+
+    <div class="visitor-options">
+      <button class="visitor-card" onclick="selectVisitorType('returning')">
+        <div class="visitor-card-icon">🙋</div>
+        <div class="visitor-card-text">
+          <b>我已經來過</b>
+        </div>
+        <div class="visitor-card-arrow">›</div>
+      </button>
+      <button class="visitor-card" onclick="selectVisitorType('new')">
+        <div class="visitor-card-icon">🆕</div>
+        <div class="visitor-card-text">
+          <b>尚未來過</b>
+        </div>
+        <div class="visitor-card-arrow">›</div>
+      </button>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="footnote">🔒 資料加密處理，請放心填寫</div>
+  </section>
+
+  <!-- Step 3: 姓名與電話 -->
+  <section class="screen" id="screen3">
+    <div class="verified-chip">
+      <div class="check">✓</div>
+      <div>
+        <b>LINE 身分驗證</b>
+        <span>已完成</span>
+      </div>
+    </div>
+    <h2 class="form-title">請填寫姓名與手機</h2>
+    <p class="subtitle" style="text-align:left;margin-bottom:20px;">請留下正確資料，AI 健康助理才能提供正確的回覆與服務</p>
 
     <div class="field" id="fieldName">
       <label class="field-label">姓名</label>
@@ -500,8 +587,8 @@
     <div class="footnote">🔒 資料加密處理，請放心填寫</div>
   </section>
 
-  <!-- Step 3 -->
-  <section class="screen" id="screen3">
+  <!-- Step 4 -->
+  <section class="screen" id="screen4">
     <div class="verify-wrap" id="verifyLoading">
       <div class="check-circle">
         <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -514,12 +601,12 @@
       <div class="icon">!</div>
       <h2>開通失敗</h2>
       <p id="errorText">系統暫時無法建立您的資料，請稍後再試一次。</p>
-      <button class="btn-primary" onclick="goToStep(2)">返回重新填寫</button>
+      <button class="btn-primary" onclick="goToStep(3)">返回重新填寫</button>
     </div>
   </section>
 
-  <!-- Step 4 -->
-  <section class="screen" id="screen4">
+  <!-- Step 5 -->
+  <section class="screen" id="screen5">
     <div class="success-hero">
       <div class="avatar-badge">
         <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#22a24a"/><path d="M8 12.5l2.5 2.5L16.5 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -559,6 +646,7 @@
       <button onclick="goToStep(2)">跳到 Step2</button>
       <button onclick="goToStep(3)">跳到 Step3</button>
       <button onclick="goToStep(4)">跳到 Step4</button>
+      <button onclick="goToStep(5)">跳到 Step5</button>
       <button onclick="testCheckApi()">測試 /member/check</button>
       <button onclick="clearLog()">清除紀錄</button>
     </div>
@@ -579,10 +667,10 @@ const CONFIG = {
   CUSTOMER_CREATE_URL: "https://his.wisebalancehealth.com/CRM/api/customers",
   CUSTOMER_QUERY_URL: "https://his.wisebalancehealth.com/CRM/api/qrycustomers",
 
-  // ---- 以下三個欄位意義未定，先放預設值，需與你確認實際邏輯 ----
+  // ---- 以下兩個欄位意義未定，先放預設值，需與你確認實際邏輯 ----
   PID: "",         // TODO: 確認這支 LIFF 對應的 PID 邏輯
-  BOT_MODE: "",    // TODO: 確認 Bot_mode 的可能值與觸發條件
   PRODUCT: "",     // TODO: 確認 Product 是否要固定值或依情境帶入
+  // Bot_mode 已確定：由 Step2 分流結果自動帶入 'new' 或 'returning'，不需在此設定
 
   // ---- Step1 吸引力設定：依實際情況調整 ----
   SHOW_INCENTIVE: false,                  // 若有開通誘因（優惠券／積點），改 true 並填 INCENTIVE_TEXT
@@ -699,7 +787,7 @@ async function checkMemberStatus(){
     const result = await apiCheckMember(LINE_UID);
     if (result.isRegister) {
       log('已是會員，直接跳至完成頁');
-      goToStep(4);
+      goToStep(5);
     }
   }catch(err){
     log('check API 呼叫失敗：' + err.message);
@@ -734,8 +822,9 @@ function applyStep1Personalization(){
 }
 
 /* ---------------- 畫面切換 ---------------- */
+let currentStep = 1;
 function goToStep(step){
-  for (let i=1;i<=4;i++){
+  for (let i=1;i<=5;i++){
     document.getElementById('screen'+i).classList.remove('visible');
     document.getElementById('dot'+i).classList.remove('active');
   }
@@ -743,9 +832,25 @@ function goToStep(step){
   for (let i=1;i<=step;i++){
     document.getElementById('dot'+i).classList.add('active');
   }
-  if (step === 2 && LINE_DISPLAY_NAME) {
-    // 可選：預填 LINE 顯示名稱作為姓名參考（非必要）
+  currentStep = step;
+  const backBtn = document.getElementById('btnBack');
+  // 只在「分流」與「填資料」頁顯示返回；進入頁沒有上一頁、驗證中與完成頁不適合返回
+  backBtn.classList.toggle('show', step === 2 || step === 3);
+}
+
+function goBack(){
+  if (currentStep === 3) {
+    goToStep(2);
+  } else if (currentStep === 2) {
+    goToStep(1);
   }
+}
+
+let visitorType = null; // 'returning' | 'new'
+function selectVisitorType(type){
+  visitorType = type;
+  log('選擇了訪客類型：' + (type === 'returning' ? '已經來過/會員' : '第一次使用'));
+  goToStep(3);
 }
 
 function resetFlow(){
@@ -783,7 +888,7 @@ async function submitRegister(){
   }
 
   document.getElementById('btnSubmit').disabled = true;
-  goToStep(3);
+  goToStep(4);
   document.getElementById('verifyLoading').style.display = 'flex';
   document.getElementById('verifyError').style.display = 'none';
 
@@ -795,13 +900,13 @@ async function submitRegister(){
       LineID: LINE_UID,
       deviceInfo: getDeviceInfo(),
       PID: CONFIG.PID,
-      Bot_mode: CONFIG.BOT_MODE,
+      Bot_mode: visitorType === 'returning' ? 'returning' : 'new', // 初診/複診判斷依據，供 Bot 後續決定回答邏輯
       Product: CONFIG.PRODUCT
     };
     const result = await apiRegisterMember(payload);
     if (result.success) {
       log('會員建立成功，member_id=' + result.member_id);
-      setTimeout(() => goToStep(4), 600);
+      setTimeout(() => goToStep(5), 600);
     } else {
       throw new Error('後端回傳 success:false');
     }
