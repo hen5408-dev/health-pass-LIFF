@@ -660,7 +660,7 @@
    ============================================================ */
 const CONFIG = {
   LIFF_ID: "2010643805-3z0aN4vC",
-  USE_MOCK_API: true,                     // true = 先用假資料測流程；接上真的後端後改成 false
+  USE_MOCK_API: false,                     // true = 先用假資料測流程；接上真的後端後改成 false
 
   // ---- CRM API 設定（正式串接時使用）----
   API_KEY: "qrt897hpmd",                  // ⚠️ 見下方安全性提醒
@@ -903,6 +903,19 @@ async function submitRegister(){
       Bot_mode: visitorType === 'returning' ? 'returning' : 'new', // 初診/複診判斷依據，供 Bot 後續決定回答邏輯
       Product: CONFIG.PRODUCT
     };
+	
+	console.group('CRM customers API');
+    console.log('Request URL:', CONFIG.CUSTOMER_CREATE_URL);
+    console.log('USE_MOCK_API:', CONFIG.USE_MOCK_API);
+    console.log('Payload:');
+    console.table(payload);
+    console.log('Payload JSON:', JSON.stringify(payload, null, 2));
+    console.groupEnd();
+
+    log('送出 payload：' + JSON.stringify(payload));
+
+    debugger;
+
     const result = await apiRegisterMember(payload);
     if (result.success) {
       log('會員建立成功，member_id=' + result.member_id);
