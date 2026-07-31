@@ -1782,6 +1782,12 @@ async function submitRegister(){
      */
     const apiMobile =
       mobile.replace(/\D/g, "");
+	  
+    const lineIDTime = getCurrentDateTime();
+    
+    
+    
+
 
     const payload = {
       Key:CONFIG.API_KEY,
@@ -1799,7 +1805,8 @@ async function submitRegister(){
           ? "returning"
           : "new",
 
-      Product:CONFIG.PRODUCT
+      Product:CONFIG.PRODUCT,
+	  LineIDTime:lineIDTime
     };
 
     console.group("CRM customers API");
@@ -1932,6 +1939,19 @@ document.getElementById(
     event.target.value = value;
   }
 );
+
+function getCurrentDateTime() {
+    const now = new Date();
+
+    const yyyy = now.getFullYear();
+    const MM = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const HH = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+}
 
 
 /* ============================================================
